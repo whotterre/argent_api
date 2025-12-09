@@ -13,6 +13,7 @@ type Config struct {
 	GoogleClientSecret string `mapstructure:"GOOGLE_CLIENT_SECRET"`
 	GoogleRedirectURL  string `mapstructure:"GOOGLE_REDIRECT_URL"`
 	JWTSecret          string `mapstructure:"JWT_SECRET"`
+	PaystackSecret     string `mapstructure:"PAYSTACK_SECRET"`
 }
 
 func LoadConfig() (config Config, err error) {

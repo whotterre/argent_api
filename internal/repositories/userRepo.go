@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"log"
+	"github.com/google/uuid"
 	"whotterre/argent/internal/dto"
 	"whotterre/argent/internal/models"
 
@@ -10,6 +11,7 @@ import (
 
 type UserRepository interface {
 	FindOrCreateUser(newUser *dto.CreateNewUserRequest) (*models.User, error)
+	GetUserById(id uuid.UUID) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
 	GetUserByGoogleID(googleID string) (*models.User, error)
 }
@@ -64,6 +66,15 @@ func (r *userRepository) FindOrCreateUser(newUser *dto.CreateNewUserRequest) (*m
 
 	user.Wallet = wallet
 	return &user, nil
+}
+
+func (r *userRepository) GetUserById(id uuid.UUID) (*models.User, error){
+	var user *models.User
+	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
+		log.Println("Failed to get user by ID")
+		return nil, err
+	}
+	return user, nil
 }
 func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user *models.User

@@ -29,9 +29,25 @@ func SetupRoutes(app *gin.Engine, cfg config.Config, db *gorm.DB) {
 	apiKeyHandler := handlers.NewAPIKeyHandler(apiKeyService)
 
 	apiKey := app.Group("/keys")
-	apiKey.Use(middleware.RequireAuth(authService))
+	apiKey.Use(middleware.RequireAuth(authService, apiKeyService, ""))
 	apiKey.POST("/create", apiKeyHandler.CreateAPIKey)
 	apiKey.POST("/rollover", apiKeyHandler.RolloverAPIKey)
+
+	// Wallet modules
+	walletRepo := repositories.NewWalletRepository(db)
+	transactionRepo := repositories.NewTransactionRepository(db)
+	walletService := services.NewWalletService(walletRepo, transactionRepo, userRepo, cfg.PaystackSecret, db)
+	walletHandler := handlers.NewWalletHandler(walletService)
+
+	wallet := app.Group("/wallet")
+	wallet.Use(middleware.RequireAuth(authService, apiKeyService, "read"))
+	wallet.POST("/deposit", walletHandler.Deposit)
+	wallet.GET("/balance", walletHandler.GetBalance)
+	wallet.POST("/transfer", walletHandler.Transfer)
+	wallet.GET("/transactions", walletHandler.GetTransactions)
+	wallet.GET("/deposit/:reference/status", walletHandler.GetDepositStatus)
+	wallet.POST("/paystack/webhook", walletHandler.Webhook)
+
 }
 
 func dummy(c *gin.Context) {
