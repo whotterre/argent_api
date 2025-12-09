@@ -1,9 +1,9 @@
 # Argent Wallet API
 
-The Argent Wallet API is a wallet API built for the penultimate stage of the HNG13 backend internship. It allows users to deposit money using Paystack, manage wallet balances, view transaction history, and transfer funds to other users.
+The Argent Wallet API is a wallet API built for the penultimate stage of the HNG13 Backend internship. It allows users to deposit money using Paystack, manage wallet balances, view transaction history, and transfer funds to other users.
 
 ### Prerequisites
-- Go 1.21+
+- Go 1.23+
 - PostgreSQL 14
 - Paystack Account (for API keys)
 - Google Cloud Console Project (for OAuth credentials)
