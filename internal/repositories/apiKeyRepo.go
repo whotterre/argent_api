@@ -11,7 +11,7 @@ import (
 
 type APIKeyRepository interface {
 	CreateAPIKey(apiKey *models.APIKey) error
-	GetAPIKeyByHashedKey(hashedKey string) (*models.APIKey, error)
+	GetAllNonRevokedAPIKeys() ([]models.APIKey, error)
 	GetActiveAPIKeysByUserID(userID uuid.UUID) ([]models.APIKey, error)
 	GetAPIKeyByID(id uuid.UUID) (*models.APIKey, error)
 	RevokeAPIKey(id uuid.UUID) error
@@ -36,21 +36,21 @@ func (r *apiKeyRepository) CreateAPIKey(apiKey *models.APIKey) error {
 	return nil
 }
 
-func (r *apiKeyRepository) GetAPIKeyByHashedKey(hashedKey string) (*models.APIKey, error) {
-	var apiKey *models.APIKey
-	if err := r.db.Where("hashed_key = ? AND is_revoked = false AND expires_at > ?", hashedKey, time.Now()).
-		First(&apiKey).Error; err != nil {
-		log.Println("Failed to get API key by hashed key:", err)
+func (r *apiKeyRepository) GetAllNonRevokedAPIKeys() ([]models.APIKey, error) {
+	var apiKeys []models.APIKey
+	if err := r.db.Where("is_revoked = false").
+		Find(&apiKeys).Error; err != nil {
+		log.Println("Failed to get all non-revoked API keys:", err)
 		return nil, err
 	}
-	return apiKey, nil
+	return apiKeys, nil
 }
 
 func (r *apiKeyRepository) GetActiveAPIKeysByUserID(userID uuid.UUID) ([]models.APIKey, error) {
 	var apiKeys []models.APIKey
 	if err := r.db.Where("user_id = ? AND is_revoked = false AND expires_at > ?", userID, time.Now()).
 		Find(&apiKeys).Error; err != nil {
-		log.Println("Failed to get active API keys:", err)
+		log.Println("Failed to get active API keys by user ID:", err)
 		return nil, err
 	}
 	return apiKeys, nil
@@ -81,6 +81,3 @@ func (r *apiKeyRepository) GetExpiredKeyByID(id uuid.UUID) (*models.APIKey, erro
 	}
 	return apiKey, nil
 }
-
-
-

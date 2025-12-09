@@ -31,6 +31,7 @@ func SetupRoutes(app *gin.Engine, cfg config.Config, db *gorm.DB) {
 	apiKey := app.Group("/keys")
 	apiKey.Use(middleware.RequireAuth(authService))
 	apiKey.POST("/create", apiKeyHandler.CreateAPIKey)
+	apiKey.POST("/rollover", apiKeyHandler.RolloverAPIKey)
 }
 
 func dummy(c *gin.Context) {

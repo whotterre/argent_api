@@ -1,8 +1,6 @@
 package services
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"log"
 	"slices"
@@ -11,6 +9,7 @@ import (
 	"whotterre/argent/internal/dto"
 	"whotterre/argent/internal/models"
 	"whotterre/argent/internal/repositories"
+	"whotterre/argent/internal/utils"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -18,7 +17,8 @@ import (
 
 type APIKeyService interface {
 	CreateAPIKey(input dto.CreateAPIKeyRequest, userID uuid.UUID) (*dto.CreateAPIKeyResponse, error)
-	ValidateAPIKey(apiKey string, requiredPermission string) (*models.APIKey, error)
+	ValidateAPIKey(apiKey string, userID uuid.UUID, requiredPermission string) (*models.APIKey, error)
+	RolloverAPIKey(input *dto.RolloverAPIKeyRequest) (*dto.RolloverAPIKeyResponse, error)
 }
 
 type apiKeyService struct {
@@ -43,8 +43,8 @@ func (s *apiKeyService) CreateAPIKey(input dto.CreateAPIKeyRequest, userID uuid.
 		return nil, customErrors.ErrorActiveAPIKeysExceeded
 	}
 
-	apiKey := generateNewAPIKeyString()
-	expiryDate, err := expiryStringToTimestamp(input.Expiry)
+	apiKey := utils.GenerateNewAPIKeyString()
+	expiryDate, err := utils.ExpiryStringToTimestamp(input.Expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -84,58 +84,73 @@ func (s *apiKeyService) CreateAPIKey(input dto.CreateAPIKeyRequest, userID uuid.
 	return &result, nil
 }
 
-func (s *apiKeyService) ValidateAPIKey(apiKey string, requiredPermission string) (*models.APIKey, error) {
-	hashedKey, err := bcrypt.GenerateFromPassword([]byte(apiKey), bcrypt.DefaultCost)
+func (s *apiKeyService) ValidateAPIKey(apiKey string, userID uuid.UUID, requiredPermission string) (*models.APIKey, error) {
+	userAPIKeys, err := s.apiKeyRepo.GetActiveAPIKeysByUserID(userID)
 	if err != nil {
-		log.Println("Failed to hash API key for validation:", err)
+		log.Println("Failed to get user's active API keys:", err)
 		return nil, err
 	}
 
-	apiKeyRecord, err := s.apiKeyRepo.GetAPIKeyByHashedKey(string(hashedKey))
+	for _, key := range userAPIKeys {
+		if err := bcrypt.CompareHashAndPassword([]byte(key.HashedKey), []byte(apiKey)); err == nil {
+			// Key matches, check permission
+			if !containsPermission(key.Permissions, requiredPermission) {
+				return nil, errors.New("insufficient permissions")
+			}
+			return &key, nil
+		}
+	}
+
+	return nil, errors.New("invalid API key")
+}
+
+func (s *apiKeyService) RolloverAPIKey(input *dto.RolloverAPIKeyRequest) (*dto.RolloverAPIKeyResponse, error) {
+	allAPIKeys, err := s.apiKeyRepo.GetAllNonRevokedAPIKeys()
 	if err != nil {
-		log.Println("API key not found or invalid:", err)
+		log.Println("Failed to get all active API keys:", err)
 		return nil, err
 	}
 
-	// Check if revoked or expired
-	if apiKeyRecord.IsRevoked || time.Now().After(apiKeyRecord.ExpiresAt) {
-		return nil, errors.New("API key is revoked or expired")
+	var expiredKey *models.APIKey
+	for _, key := range allAPIKeys {
+		if err := bcrypt.CompareHashAndPassword([]byte(key.HashedKey), []byte(input.ExpiredAPIKey)); err == nil {
+			expiredKey = &key
+			break
+		}
 	}
 
-	// Check permission
-	if !containsPermission(apiKeyRecord.Permissions, requiredPermission) {
-		return nil, errors.New("insufficient permissions")
+	if expiredKey == nil {
+		return nil, customErrors.ErrNonExistentAPIKey
 	}
 
-	return apiKeyRecord, nil
+	if !time.Now().After(expiredKey.ExpiresAt) {
+		return nil, customErrors.ErrRollingOverNotExpiredKey
+	}
+
+	// Revoke the old key
+	err = s.apiKeyRepo.RevokeAPIKey(expiredKey.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	newAPIKey := dto.CreateAPIKeyRequest{
+		Name:        expiredKey.Name,
+		Permissions: expiredKey.Permissions,
+		Expiry:      input.Expiry,
+	}
+
+	createdKey, err := s.CreateAPIKey(newAPIKey, expiredKey.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	response := dto.RolloverAPIKeyResponse{
+		APIKey:    createdKey.APIKey,
+		ExpiresAt: createdKey.ExpiresAt,
+	}
+	return &response, nil
 }
 
 func containsPermission(permissions []string, permission string) bool {
 	return slices.Contains(permissions, permission)
-}
-
-func generateNewAPIKeyString() string {
-	prefix := "sk_live_"
-
-	bytes := make([]byte, 45)
-	rand.Read(bytes)
-	end := base64.RawURLEncoding.EncodeToString(bytes)
-
-	return prefix + end
-}
-
-func expiryStringToTimestamp(expiryStr string) (time.Time, error) {
-	now := time.Now()
-	switch expiryStr {
-	case "1H":
-		return now.Add(time.Hour), nil
-	case "1D":
-		return now.AddDate(0, 0, 1), nil 
-	case "1M":
-		return now.AddDate(0, 1, 0), nil 
-	case "1Y":
-		return now.AddDate(1, 0, 0), nil 
-	default:
-		return time.Time{}, errors.New("invalid expiry string") 
-	}
 }

@@ -68,3 +68,24 @@ func (h *APIKeyHandler) CreateAPIKey(c *gin.Context) {
 		"expires_at": response.ExpiresAt,
 	})
 }
+
+func (h *APIKeyHandler) RolloverAPIKey(c *gin.Context){
+	var req dto.RolloverAPIKeyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Println("Failed to parse request body because", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Something went wrong while rolling over the API key on our end",
+		})
+	}
+
+	response, err := h.apiKeyService.RolloverAPIKey(&req)
+	if err != nil {
+		log.Println("Failed to roll over API key because", err.Error())
+		return 
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"api_key":    response.APIKey,
+		"expires_at": response.ExpiresAt,
+	})
+}
