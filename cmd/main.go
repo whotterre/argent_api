@@ -17,7 +17,8 @@ func main() {
 
 	// Connect to database
 	initializers.ConnectToDB(cfg.DatabaseURL)
-	routes.SetupRoutes(app)
+	db := initializers.DB
+	routes.SetupRoutes(app, cfg, db)
 	
 	port := ":" + cfg.Port
 	app.Run(port)
