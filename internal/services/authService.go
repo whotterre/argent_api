@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"whotterre/argent/internal/repositories"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -26,6 +28,8 @@ type AuthService interface {
 	GenerateJWT(user *models.User, jwtSecret string) (string, error)
 	GetGoogleUserInfo(accessToken string) (*models.GoogleUserInfo, error)
 	FindOrCreateUser(newUser *dto.CreateNewUserRequest) (*models.User, error)
+	ParseJWT(tokenString string) (*jwt.MapClaims, error)
+	GetUserIDFromJWT(tokenString string) (uuid.UUID, error)
 }
 
 type authService struct {
@@ -101,4 +105,42 @@ func (s *authService) FindOrCreateUser(newUser *dto.CreateNewUserRequest) (*mode
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *authService) ParseJWT(tokenString string) (*jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(s.jwtSecret), nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return &claims, nil
+	}
+
+	return nil, fmt.Errorf("invalid token")
+}
+
+func (s *authService) GetUserIDFromJWT(tokenString string) (uuid.UUID, error) {
+	claims, err := s.ParseJWT(tokenString)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	userIDStr, ok := (*claims)["user_id"].(string)
+	if !ok {
+		return uuid.Nil, fmt.Errorf("user_id claim not found or not a string")
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("invalid user_id format: %v", err)
+	}
+
+	return userID, nil
 }
