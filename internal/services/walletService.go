@@ -247,7 +247,7 @@ func (s *walletService) callPaystack(endpoint string, payload map[string]interfa
 	var result map[string]interface{}
 	json.Unmarshal(body, &result)
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Paystack error: %v", result))
+		return nil, fmt.Errorf("Paystack error: %v", result)
 	}
 	return result, nil
 }
