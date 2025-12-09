@@ -51,7 +51,7 @@ func (s *apiKeyService) CreateAPIKey(input dto.CreateAPIKeyRequest, userID uuid.
 
 	// Validate permissions
 	validPermissions := []string{"deposit", "transfer", "read"}
-	for _, perm := range validPermissions {
+	for _, perm := range input.Permissions {
 		if !slices.Contains(validPermissions, perm) {
 			return nil, customErrors.ErrInvalidPermission
 		}
