@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"log"
+	"whotterre/argent/internal/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,7 +17,7 @@ func ConnectToDB(connString string) {
 		log.Fatal("Failed to connect to database")
 	}
 
-	if err := DB.AutoMigrate(); err != nil {
+	if err := DB.AutoMigrate(&models.APIKey{}, &models.Transaction{}, &models.User{}, &models.Wallet{}); err != nil {
 		log.Fatal("Failed to migrate database")
 	}
 	log.Println("Connected successfully to PostgreSQL database")
