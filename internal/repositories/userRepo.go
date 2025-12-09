@@ -11,6 +11,7 @@ import (
 type UserRepository interface {
 	FindOrCreateUser(newUser *dto.CreateNewUserRequest) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
+	GetUserByGoogleID(googleID string) (*models.User, error)
 }
 type userRepository struct {
 	db *gorm.DB
@@ -23,34 +24,60 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 func (r *userRepository) FindOrCreateUser(newUser *dto.CreateNewUserRequest) (*models.User, error) {
-	existingUser, err := r.GetUserByEmail(newUser.Email)
+	var user models.User
+	// Check if user exists
+	err := r.db.Preload("Wallet").Where("email = ?", newUser.Email).First(&user).Error
 	if err == nil {
-		return existingUser, nil
+		return &user, nil
 	}
 
-	if err != gorm.ErrRecordNotFound {
-		log.Println("Error checking for existing user:", err)
-		return nil, err
+	// If not found, create
+	tx := r.db.Begin()
+	user = models.User{
+		GoogleID:  newUser.GoogleID,
+		Email:     newUser.Email,
+		FirstName: newUser.FirstName,
+		LastName:  newUser.LastName,
 	}
 
-	user := models.User{
-		GoogleID: newUser.GoogleID,
-		Email:    newUser.Email,
-		FullName: newUser.FullName,
-		IsActive: true,
-	}
-
-	if err := r.db.Create(&user).Error; err != nil {
+	if err := tx.Create(&user).Error; err != nil {
+		tx.Rollback()
 		log.Println("Failed to create user:", err)
 		return nil, err
 	}
 
+	// Create Wallet
+	wallet := models.Wallet{
+		UserID:  user.ID,
+		Balance: 0,
+	}
+	if err := tx.Create(&wallet).Error; err != nil {
+		tx.Rollback()
+		log.Println("Failed to create wallet:", err)
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		log.Println("Failed to commit transaction:", err)
+		return nil, err
+	}
+
+	user.Wallet = wallet
 	return &user, nil
 }
 func (r *userRepository) GetUserByEmail(email string) (*models.User, error) {
 	var user *models.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
 		log.Println("Failed to get user by email")
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *userRepository) GetUserByGoogleID(googleID string) (*models.User, error) {
+	var user *models.User
+	if err := r.db.Where("google_id = ?", googleID).First(&user).Error; err != nil {
+		log.Println("Failed to get user by Google ID")
 		return nil, err
 	}
 	return user, nil

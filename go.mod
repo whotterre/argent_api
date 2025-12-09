@@ -4,7 +4,10 @@ go 1.25.1
 
 require gorm.io/driver/postgres v1.6.0
 
-require cloud.google.com/go/compute/metadata v0.3.0 // indirect
+require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect
