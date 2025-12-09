@@ -1,0 +1,87 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build the application
+      run: |
+        go mod tidy
+        go build -o argent_api .
+
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          # Stop the existing app if running
+          sudo systemctl stop argent || true
+          # Copy the new binary
+          scp -o StrictHostKeyChecking=no argent_api ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/argent_api
+          # Restart the app
+          sudo systemctl start argent
+          # Check status
+          sudo systemctl status argent
+
+    - name: Set up SSL with Let's Encrypt and Nginx
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          # Install Nginx and certbot
+          sudo apt update
+          sudo apt install -y nginx certbot python3-certbot-nginx
+          # Create Nginx config for your app (replace yourdomain.com)
+          sudo tee /etc/nginx/sites-available/argent > /dev/null <<EOF
+          server {
+              listen 80;
+              server_name yourdomain.com;
+              location / {
+                  proxy_pass http://localhost:9000;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+          }
+          EOF
+          sudo ln -s /etc/nginx/sites-available/argent /etc/nginx/sites-enabled/
+          sudo nginx -t
+          sudo systemctl reload nginx
+          # Obtain SSL certificate
+          sudo certbot --nginx -d yourdomain.com --non-interactive --agree-tos --email your-email@example.com
+          # Certbot will automatically update Nginx config for HTTPS
+
+    - name: Update .env on EC2
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        port: 22
+        script: |
+          # Update BASE_URL to HTTPS domain
+          sed -i 's|BASE_URL=.*|BASE_URL=https://yourdomain.com|' /home/${{ secrets.EC2_USER }}/.env
+          # Restart app to pick up changes
+          sudo systemctl restart argent
