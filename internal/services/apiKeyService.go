@@ -1,8 +1,6 @@
 package services
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"log"
 	"slices"
@@ -11,6 +9,7 @@ import (
 	"whotterre/argent/internal/dto"
 	"whotterre/argent/internal/models"
 	"whotterre/argent/internal/repositories"
+	"whotterre/argent/internal/utils"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -43,8 +42,8 @@ func (s *apiKeyService) CreateAPIKey(input dto.CreateAPIKeyRequest, userID uuid.
 		return nil, customErrors.ErrorActiveAPIKeysExceeded
 	}
 
-	apiKey := generateNewAPIKeyString()
-	expiryDate, err := expiryStringToTimestamp(input.Expiry)
+	apiKey := utils.GenerateNewAPIKeyString()
+	expiryDate, err := utils.ExpiryStringToTimestamp(input.Expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -112,30 +111,4 @@ func (s *apiKeyService) ValidateAPIKey(apiKey string, requiredPermission string)
 
 func containsPermission(permissions []string, permission string) bool {
 	return slices.Contains(permissions, permission)
-}
-
-func generateNewAPIKeyString() string {
-	prefix := "sk_live_"
-
-	bytes := make([]byte, 45)
-	rand.Read(bytes)
-	end := base64.RawURLEncoding.EncodeToString(bytes)
-
-	return prefix + end
-}
-
-func expiryStringToTimestamp(expiryStr string) (time.Time, error) {
-	now := time.Now()
-	switch expiryStr {
-	case "1H":
-		return now.Add(time.Hour), nil
-	case "1D":
-		return now.AddDate(0, 0, 1), nil 
-	case "1M":
-		return now.AddDate(0, 1, 0), nil 
-	case "1Y":
-		return now.AddDate(1, 0, 0), nil 
-	default:
-		return time.Time{}, errors.New("invalid expiry string") 
-	}
 }
