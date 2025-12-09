@@ -10,9 +10,7 @@ import (
 func GenerateNewAPIKeyString() string {
 	prefix := "sk_live_"
 
-	bytes := make([]byte, 45)
-	rand.Read(bytes)
-	end := base64.RawURLEncoding.EncodeToString(bytes)
+	end := GenString(45)
 
 	return prefix + end
 }
@@ -31,4 +29,12 @@ func ExpiryStringToTimestamp(expiryStr string) (time.Time, error) {
 	default:
 		return time.Time{}, errors.New("invalid expiry string") 
 	}
+}
+
+
+func GenString(length int) string {
+	bytes := make([]byte, length)
+	rand.Read(bytes)
+	result := base64.RawURLEncoding.EncodeToString(bytes)
+	return result
 }
