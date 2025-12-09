@@ -22,7 +22,7 @@ jobs:
     - name: Build the application
       run: |
         go mod tidy
-        go build -o argent_api .
+        cd cmd && go build -o argent_api .
 
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.0.3
