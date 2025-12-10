@@ -28,11 +28,22 @@ import (
 	"whotterre/argent/internal/initializers"
 	"whotterre/argent/internal/routes"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	app := gin.Default()
+
+	// Configure CORS
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-API-Key", "X-Paystack-Signature"},
+		AllowCredentials: true,
+		MaxAge:           300, // 5 minutes
+	}))
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return
