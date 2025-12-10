@@ -58,7 +58,7 @@ definitions:
       status:
         type: string
     type: object
-host: localhost:9000
+host: https://argentapi-production-119e.up.railway.app
 info:
   contact:
     email: support@swagger.io

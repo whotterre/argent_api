@@ -94,7 +94,7 @@ func (h *APIKeyHandler) CreateAPIKey(c *gin.Context) {
 // @Failure 500 {object} map[string]string "error"
 // @Security BearerAuth
 // @Router /keys/rollover [post]
-func (h *APIKeyHandler) RolloverAPIKey(c *gin.Context){
+func (h *APIKeyHandler) RolloverAPIKey(c *gin.Context) {
 	var req dto.RolloverAPIKeyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Println("Failed to parse request body because", err.Error())
@@ -106,9 +106,9 @@ func (h *APIKeyHandler) RolloverAPIKey(c *gin.Context){
 	response, err := h.apiKeyService.RolloverAPIKey(&req)
 	if err != nil {
 		log.Println("Failed to roll over API key because", err.Error())
-		return 
+		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"api_key":    response.APIKey,
 		"expires_at": response.ExpiresAt,

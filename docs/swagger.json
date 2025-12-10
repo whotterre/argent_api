@@ -15,7 +15,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:9000",
+    "host": "https://argentapi-production-119e.up.railway.app",
     "basePath": "/",
     "paths": {
         "/auth/google": {

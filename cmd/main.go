@@ -10,7 +10,7 @@
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@host			localhost:9000
+//	@host			https://argentapi-production-119e.up.railway.app
 //	@BasePath		/
 
 //	@securityDefinitions.apikey	BearerAuth
@@ -22,10 +22,10 @@
 package main
 
 import (
+	_ "whotterre/argent/docs"
 	"whotterre/argent/internal/config"
 	"whotterre/argent/internal/initializers"
 	"whotterre/argent/internal/routes"
-	_ "whotterre/argent/docs"
 
 	"github.com/gin-gonic/gin"
 )
