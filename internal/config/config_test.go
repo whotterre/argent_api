@@ -73,4 +73,3 @@ func TestLoadConfigFromEnvVarsWithoutDotEnvFile(t *testing.T) {
 
 	t.Log("✓ Config successfully loaded from environment variables without .env file")
 }
-
