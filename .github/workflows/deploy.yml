@@ -27,7 +27,7 @@ jobs:
     - name: Deploy to EC2
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.EC2_HOST }}
+        host: ${{  3.89.62.30  }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         port: 22
@@ -35,7 +35,7 @@ jobs:
           # Stop the existing app if running
           sudo systemctl stop argent || true
           # Copy the new binary
-          scp -o StrictHostKeyChecking=no argent_api ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/argent_api
+          scp -o StrictHostKeyChecking=no argent_api ${{ secrets.EC2_USER }}@${{  3.89.62.30  }}:/home/${{ secrets.EC2_USER }}/argent_api
           # Restart the app
           sudo systemctl start argent
           # Check status
@@ -44,7 +44,7 @@ jobs:
     - name: Set up SSL with Let's Encrypt and Nginx
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.EC2_HOST }}
+        host: ${{  3.89.62.30  }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         port: 22
@@ -76,7 +76,7 @@ jobs:
     - name: Update .env on EC2
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.EC2_HOST }}
+        host: ${{  3.89.62.30  }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         port: 22
