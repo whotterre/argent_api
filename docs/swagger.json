@@ -1,4 +1,7 @@
 {
+    "schemes": [
+        "https"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "A wallet API for managing deposits, transfers, and balances with Paystack integration.",
@@ -15,7 +18,7 @@
         },
         "version": "1.0"
     },
-    "host": "https://argentapi-production-119e.up.railway.app",
+    "host": "argentapi-production-119e.up.railway.app",
     "basePath": "/",
     "paths": {
         "/auth/google": {

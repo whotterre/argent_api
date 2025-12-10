@@ -647,9 +647,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "https://argentapi-production-119e.up.railway.app",
+	Host:             "argentapi-production-119e.up.railway.app",
 	BasePath:         "/",
-	Schemes:          []string{},
+	Schemes:          []string{"https"},
 	Title:            "Argent Wallet API",
 	Description:      "A wallet API for managing deposits, transfers, and balances with Paystack integration.",
 	InfoInstanceName: "swagger",

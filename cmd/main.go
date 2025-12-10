@@ -10,8 +10,9 @@
 //	@license.name	Apache 2.0
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
-//	@host			https://argentapi-production-119e.up.railway.app
-//	@BasePath		/
+//	@host		argentapi-production-119e.up.railway.app
+//	@schemes	https
+//	@BasePath	/
 
 //	@securityDefinitions.apikey	BearerAuth
 //	@type						apiKey
