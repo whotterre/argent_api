@@ -7,7 +7,10 @@ require (
 	gorm.io/driver/postgres v1.6.0
 )
 
-require cloud.google.com/go/compute/metadata v0.3.0 // indirect
+require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect

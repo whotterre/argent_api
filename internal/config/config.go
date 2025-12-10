@@ -1,22 +1,39 @@
 package config
 
 import (
-	"github.com/spf13/viper"
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Port               string `mapstructure:"PORT"`
-	DatabaseURL        string `mapstructure:"DATABASE_URL"`
-	GoogleClientID     string `mapstructure:"GOOGLE_CLIENT_ID"`
-	GoogleClientSecret string `mapstructure:"GOOGLE_CLIENT_SECRET"`
-	GoogleRedirectURL  string `mapstructure:"GOOGLE_REDIRECT_URL"`
-	JWTSecret          string `mapstructure:"JWT_SECRET"`
-	PaystackSecret     string `mapstructure:"PAYSTACK_SECRET"`
+	Port               string
+	DatabaseURL        string
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleRedirectURL  string
+	JWTSecret          string
+	PaystackSecret     string
 }
 
 func LoadConfig() (config Config, err error) {
-	viper.AutomaticEnv()
+	// Load .env file if it exists (ignore error if not)
+	_ = godotenv.Load()
 
-	err = viper.Unmarshal(&config)
-	return
+	// Read from environment variables
+	config.Port = os.Getenv("PORT")
+	config.DatabaseURL = os.Getenv("DATABASE_URL")
+	config.GoogleClientID = os.Getenv("GOOGLE_CLIENT_ID")
+	config.GoogleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	config.GoogleRedirectURL = os.Getenv("GOOGLE_REDIRECT_URL")
+	config.JWTSecret = os.Getenv("JWT_SECRET")
+	config.PaystackSecret = os.Getenv("PAYSTACK_SECRET")
+
+	// Log if DATABASE_URL is empty (for debugging)
+	if config.DatabaseURL == "" {
+		log.Println("Warning: DATABASE_URL is not set")
+	}
+
+	return config, nil
 }
