@@ -30,10 +30,8 @@ func LoadConfig() (config Config, err error) {
 	config.JWTSecret = os.Getenv("JWT_SECRET")
 	config.PaystackSecret = os.Getenv("PAYSTACK_SECRET")
 
-	// Log if DATABASE_URL is empty (for debugging)
-	if config.DatabaseURL == "" {
-		log.Println("Warning: DATABASE_URL is not set")
-	}
+	// Debug log
+	log.Printf("Config loaded: PORT=%s, DATABASE_URL=%s", config.Port, config.DatabaseURL)
 
 	return config, nil
 }
