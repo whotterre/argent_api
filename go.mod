@@ -1,6 +1,6 @@
 module whotterre/argent
 
-go 1.25.0
+go 1.21.13
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
