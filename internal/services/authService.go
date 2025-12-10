@@ -39,12 +39,14 @@ type authService struct {
 }
 
 func NewAuthService(authRepo repositories.UserRepository, cfg config.Config) AuthService {
+	redirectURL := cfg.BaseURL + "/auth/google/callback"
+	log.Printf("OAuth Redirect URL: %s", redirectURL)
 	return &authService{
 		authRepo: authRepo,
 		oauthConfig: &oauth2.Config{
 			ClientID:     cfg.GoogleClientID,
 			ClientSecret: cfg.GoogleClientSecret,
-			RedirectURL:  cfg.GoogleRedirectURL,
+			RedirectURL:  redirectURL,
 			Scopes: []string{
 				"https://www.googleapis.com/auth/userinfo.email",
 				"https://www.googleapis.com/auth/userinfo.profile",
