@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Port               string
 	DatabaseURL        string
+	BaseURL            string
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleRedirectURL  string
@@ -24,6 +25,7 @@ func LoadConfig() (config Config, err error) {
 	// Read from environment variables
 	config.Port = os.Getenv("PORT")
 	config.DatabaseURL = os.Getenv("DATABASE_URL")
+	config.BaseURL = os.Getenv("BASE_URL")
 	config.GoogleClientID = os.Getenv("GOOGLE_CLIENT_ID")
 	config.GoogleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
 	config.GoogleRedirectURL = os.Getenv("GOOGLE_REDIRECT_URL")
@@ -31,7 +33,7 @@ func LoadConfig() (config Config, err error) {
 	config.PaystackSecret = os.Getenv("PAYSTACK_SECRET")
 
 	// Debug log
-	log.Printf("Config loaded: PORT=%s, DATABASE_URL=%s", config.Port, config.DatabaseURL)
+	log.Printf("Config loaded: PORT=%s, DATABASE_URL=%s, BASE_URL=%s", config.Port, config.DatabaseURL, config.BaseURL)
 
 	return config, nil
 }
