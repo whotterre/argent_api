@@ -22,6 +22,14 @@ func NewAuthHandler(authService services.AuthService, cfg config.Config) *AuthHa
 	}
 }
 
+// HandleGoogleLogin initiates Google OAuth login
+// @Summary Initiate Google OAuth login
+// @Description Redirects to Google for authentication
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 302 {string} string "Redirect to Google"
+// @Router /auth/google [get]
 func (h *AuthHandler) HandleGoogleLogin(c *gin.Context) {
 	log.Println("Initiating Google login....")
 	// Generate CSRF token
@@ -34,6 +42,15 @@ func (h *AuthHandler) HandleGoogleLogin(c *gin.Context) {
 	c.Redirect(http.StatusTemporaryRedirect, authURL)
 }
 
+// HandleGoogleCallback handles Google OAuth callback
+// @Summary Handle Google OAuth callback
+// @Description Processes the OAuth callback and returns JWT token
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]string "token"
+// @Failure 400 {object} map[string]string "error"
+// @Router /auth/google/callback [get]
 func (h *AuthHandler) HandleGoogleCallback(c *gin.Context) {
 	savedState, err := c.Cookie("oauth_state")
 	if err != nil {

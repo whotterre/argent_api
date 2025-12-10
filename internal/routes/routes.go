@@ -9,6 +9,8 @@ import (
 	"whotterre/argent/internal/services"
 
 	"github.com/gin-gonic/gin"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"gorm.io/gorm"
 )
 
@@ -47,6 +49,9 @@ func SetupRoutes(app *gin.Engine, cfg config.Config, db *gorm.DB) {
 	wallet.GET("/transactions", walletHandler.GetTransactions)
 	wallet.GET("/deposit/:reference/status", walletHandler.GetDepositStatus)
 	wallet.POST("/paystack/webhook", walletHandler.Webhook)
+
+	// Swagger docs
+	app.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 }
 

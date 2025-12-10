@@ -1,0 +1,61 @@
+basePath: /
+host: localhost:9000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A wallet API for managing deposits, transfers, and balances with Paystack
+    integration.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Argent Wallet API
+  version: "1.0"
+paths:
+  /auth/google:
+    get:
+      consumes:
+      - application/json
+      description: Redirects to Google for authentication
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to Google
+          schema:
+            type: string
+      summary: Initiate Google OAuth login
+      tags:
+      - auth
+  /auth/google/callback:
+    get:
+      consumes:
+      - application/json
+      description: Processes the OAuth callback and returns JWT token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Handle Google OAuth callback
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: 'Enter the token in the format: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
