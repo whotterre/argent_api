@@ -113,10 +113,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "api_key,expires_at",
+                        "description": "API key creation response",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.CreateAPIKeyResponse"
                         }
                     },
                     "400": {
@@ -180,10 +179,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "api_key,expires_at",
+                        "description": "API key rollover response",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.RolloverAPIKeyResponse"
                         }
                     },
                     "400": {
@@ -227,7 +225,7 @@ const docTemplate = `{
                 "summary": "Get wallet balance",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Wallet balance response",
                         "schema": {
                             "$ref": "#/definitions/whotterre_argent_internal_dto.BalanceResponse"
                         }
@@ -275,7 +273,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Deposit response with reference and authorization URL",
                         "schema": {
                             "$ref": "#/definitions/whotterre_argent_internal_dto.DepositWalletResponse"
                         }
@@ -325,10 +323,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Deposit status response",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.DepositStatusResponse"
                         }
                     },
                     "400": {
@@ -381,10 +378,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Deposit status response",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.DepositStatusResponse"
                         }
                     },
                     "404": {
@@ -463,7 +459,7 @@ const docTemplate = `{
                 "summary": "Get transaction history",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Array of transaction responses",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -514,7 +510,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Transfer response",
                         "schema": {
                             "$ref": "#/definitions/whotterre_argent_internal_dto.TransferResponse"
                         }
@@ -567,6 +563,31 @@ const docTemplate = `{
                 }
             }
         },
+        "whotterre_argent_internal_dto.CreateAPIKeyResponse": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.DepositStatusResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "reference": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "whotterre_argent_internal_dto.DepositWalletRequest": {
             "type": "object",
             "properties": {
@@ -589,10 +610,21 @@ const docTemplate = `{
         "whotterre_argent_internal_dto.RolloverAPIKeyRequest": {
             "type": "object",
             "properties": {
-                "Expiry": {
+                "expired_key_id": {
                     "type": "string"
                 },
-                "expired_api_key": {
+                "expiry": {
+                    "type": "string"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.RolloverAPIKeyResponse": {
+            "type": "object",
+            "properties": {
+                "api_key": {
+                    "type": "string"
+                },
+                "expires_at": {
                     "type": "string"
                 }
             }

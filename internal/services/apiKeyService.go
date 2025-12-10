@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log"
 	"slices"
-	"time"
 	"whotterre/argent/internal/customErrors"
 	"whotterre/argent/internal/dto"
 	"whotterre/argent/internal/models"
@@ -18,7 +17,7 @@ import (
 type APIKeyService interface {
 	CreateAPIKey(input dto.CreateAPIKeyRequest, userID uuid.UUID) (*dto.CreateAPIKeyResponse, error)
 	ValidateAPIKey(apiKey string, userID uuid.UUID, requiredPermission string) (*models.APIKey, error)
-	RolloverAPIKey(input *dto.RolloverAPIKeyRequest) (*dto.RolloverAPIKeyResponse, error)
+	RolloverAPIKey(input *dto.RolloverAPIKeyRequest, userID uuid.UUID) (*dto.RolloverAPIKeyResponse, error)
 }
 
 type apiKeyService struct {
@@ -104,27 +103,24 @@ func (s *apiKeyService) ValidateAPIKey(apiKey string, userID uuid.UUID, required
 	return nil, errors.New("invalid API key")
 }
 
-func (s *apiKeyService) RolloverAPIKey(input *dto.RolloverAPIKeyRequest) (*dto.RolloverAPIKeyResponse, error) {
-	allAPIKeys, err := s.apiKeyRepo.GetAllNonRevokedAPIKeys()
+func (s *apiKeyService) RolloverAPIKey(input *dto.RolloverAPIKeyRequest, userID uuid.UUID) (*dto.RolloverAPIKeyResponse, error) {
+	// Parse the expired key ID
+	expiredKeyID, err := uuid.Parse(input.ExpiredKeyID)
 	if err != nil {
-		log.Println("Failed to get all active API keys:", err)
-		return nil, err
+		log.Println("Invalid expired key ID format:", err)
+		return nil, errors.New("invalid expired key ID format")
 	}
 
-	var expiredKey *models.APIKey
-	for _, key := range allAPIKeys {
-		if err := bcrypt.CompareHashAndPassword([]byte(key.HashedKey), []byte(input.ExpiredAPIKey)); err == nil {
-			expiredKey = &key
-			break
-		}
-	}
-
-	if expiredKey == nil {
+	// Get the expired key
+	expiredKey, err := s.apiKeyRepo.GetExpiredKeyByID(expiredKeyID)
+	if err != nil {
+		log.Println("Failed to get expired key:", err)
 		return nil, customErrors.ErrNonExistentAPIKey
 	}
 
-	if !time.Now().After(expiredKey.ExpiresAt) {
-		return nil, customErrors.ErrRollingOverNotExpiredKey
+	// Check if the key belongs to the current user
+	if expiredKey.UserID != userID {
+		return nil, errors.New("unauthorized")
 	}
 
 	// Revoke the old key

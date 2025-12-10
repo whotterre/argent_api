@@ -14,8 +14,8 @@ type CreateAPIKeyResponse struct {
 }
 
 type RolloverAPIKeyRequest struct {
-	ExpiredAPIKey string `json:"expired_api_key"`
-	Expiry        string `json:"Expiry"`
+	ExpiredKeyID string `json:"expired_key_id"`
+	Expiry       string `json:"expiry"`
 }
 
 type RolloverAPIKeyResponse struct {

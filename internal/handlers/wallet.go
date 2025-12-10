@@ -26,7 +26,7 @@ func NewWalletHandler(walletService services.WalletService) *WalletHandler {
 // @Accept json
 // @Produce json
 // @Param request body dto.DepositWalletRequest true "Deposit request"
-// @Success 200 {object} dto.DepositWalletResponse
+// @Success 200 {object} dto.DepositWalletResponse "Deposit response with reference and authorization URL"
 // @Failure 400 {object} map[string]string "error"
 // @Failure 500 {object} map[string]string "error"
 // @Security BearerAuth
@@ -55,7 +55,7 @@ func (h *WalletHandler) Deposit(c *gin.Context) {
 // @Tags wallet
 // @Accept json
 // @Produce json
-// @Success 200 {object} dto.BalanceResponse
+// @Success 200 {object} dto.BalanceResponse "Wallet balance response"
 // @Failure 500 {object} map[string]string "error"
 // @Security BearerAuth
 // @Router /wallet/balance [get]
@@ -78,7 +78,7 @@ func (h *WalletHandler) GetBalance(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body dto.TransferRequest true "Transfer request"
-// @Success 200 {object} dto.TransferResponse
+// @Success 200 {object} dto.TransferResponse "Transfer response"
 // @Failure 400 {object} map[string]string "error"
 // @Failure 500 {object} map[string]string "error"
 // @Security BearerAuth
@@ -107,7 +107,7 @@ func (h *WalletHandler) Transfer(c *gin.Context) {
 // @Tags wallet
 // @Accept json
 // @Produce json
-// @Success 200 {array} dto.TransactionResponse
+// @Success 200 {array} dto.TransactionResponse "Array of transaction responses"
 // @Failure 500 {object} map[string]string "error"
 // @Security BearerAuth
 // @Router /wallet/transactions [get]
@@ -139,7 +139,7 @@ func (h *WalletHandler) GetTransactions(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param reference path string true "Transaction reference"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} dto.DepositStatusResponse "Deposit status response"
 // @Failure 404 {object} map[string]string "error"
 // @Security BearerAuth
 // @Router /wallet/deposit/{reference}/status [get]
@@ -185,7 +185,7 @@ func (h *WalletHandler) Webhook(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param reference query string true "Transaction reference"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} dto.DepositStatusResponse "Deposit status response"
 // @Failure 400 {object} map[string]string "error"
 // @Failure 404 {object} map[string]string "error"
 // @Router /wallet/deposit/callback [get]

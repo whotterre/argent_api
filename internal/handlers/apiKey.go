@@ -31,7 +31,7 @@ func NewAPIKeyHandler(apiKeyService services.APIKeyService) *APIKeyHandler {
 // @Accept json
 // @Produce json
 // @Param request body dto.CreateAPIKeyRequest true "API key creation request"
-// @Success 200 {object} map[string]interface{} "api_key,expires_at"
+// @Success 200 {object} dto.CreateAPIKeyResponse "API key creation response"
 // @Failure 400 {object} map[string]string "error"
 // @Failure 412 {object} map[string]string "error"
 // @Failure 500 {object} map[string]string "error"
@@ -89,7 +89,7 @@ func (h *APIKeyHandler) CreateAPIKey(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body dto.RolloverAPIKeyRequest true "API key rollover request"
-// @Success 200 {object} map[string]interface{} "api_key,expires_at"
+// @Success 200 {object} dto.RolloverAPIKeyResponse "API key rollover response"
 // @Failure 400 {object} map[string]string "error"
 // @Failure 500 {object} map[string]string "error"
 // @Security BearerAuth
@@ -103,7 +103,9 @@ func (h *APIKeyHandler) RolloverAPIKey(c *gin.Context) {
 		})
 	}
 
-	response, err := h.apiKeyService.RolloverAPIKey(&req)
+	userID := c.MustGet("user_id").(uuid.UUID)
+
+	response, err := h.apiKeyService.RolloverAPIKey(&req, userID)
 	if err != nil {
 		log.Println("Failed to roll over API key because", err.Error())
 		return
