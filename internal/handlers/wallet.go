@@ -19,6 +19,18 @@ func NewWalletHandler(walletService services.WalletService) *WalletHandler {
 	}
 }
 
+// DepositWallet godoc
+// @Summary Deposit money into wallet
+// @Description Initiate a deposit transaction using Paystack
+// @Tags wallet
+// @Accept json
+// @Produce json
+// @Param request body dto.DepositWalletRequest true "Deposit request"
+// @Success 200 {object} dto.DepositWalletResponse
+// @Failure 400 {object} map[string]string "error"
+// @Failure 500 {object} map[string]string "error"
+// @Security BearerAuth
+// @Router /wallet/deposit [post]
 func (h *WalletHandler) Deposit(c *gin.Context) {
 	var req dto.DepositWalletRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,6 +49,16 @@ func (h *WalletHandler) Deposit(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetBalance godoc
+// @Summary Get wallet balance
+// @Description Retrieve the current balance of the user's wallet
+// @Tags wallet
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.BalanceResponse
+// @Failure 500 {object} map[string]string "error"
+// @Security BearerAuth
+// @Router /wallet/balance [get]
 func (h *WalletHandler) GetBalance(c *gin.Context) {
 	userID := c.MustGet("user_id").(uuid.UUID)
 
@@ -49,6 +71,18 @@ func (h *WalletHandler) GetBalance(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.BalanceResponse{Balance: balance})
 }
 
+// Transfer godoc
+// @Summary Transfer money to another wallet
+// @Description Transfer money from user's wallet to another wallet by wallet number
+// @Tags wallet
+// @Accept json
+// @Produce json
+// @Param request body dto.TransferRequest true "Transfer request"
+// @Success 200 {object} dto.TransferResponse
+// @Failure 400 {object} map[string]string "error"
+// @Failure 500 {object} map[string]string "error"
+// @Security BearerAuth
+// @Router /wallet/transfer [post]
 func (h *WalletHandler) Transfer(c *gin.Context) {
 	var req dto.TransferRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -67,6 +101,16 @@ func (h *WalletHandler) Transfer(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.TransferResponse{Status: "success", Message: "Transfer completed"})
 }
 
+// GetTransactions godoc
+// @Summary Get transaction history
+// @Description Retrieve the user's transaction history
+// @Tags wallet
+// @Accept json
+// @Produce json
+// @Success 200 {array} dto.TransactionResponse
+// @Failure 500 {object} map[string]string "error"
+// @Security BearerAuth
+// @Router /wallet/transactions [get]
 func (h *WalletHandler) GetTransactions(c *gin.Context) {
 	userID := c.MustGet("user_id").(uuid.UUID)
 
@@ -88,6 +132,17 @@ func (h *WalletHandler) GetTransactions(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetDepositStatus godoc
+// @Summary Get deposit transaction status
+// @Description Check the status of a deposit transaction by reference
+// @Tags wallet
+// @Accept json
+// @Produce json
+// @Param reference path string true "Transaction reference"
+// @Success 200 {object} map[string]interface{}
+// @Failure 404 {object} map[string]string "error"
+// @Security BearerAuth
+// @Router /wallet/deposit/{reference}/status [get]
 func (h *WalletHandler) GetDepositStatus(c *gin.Context) {
 	reference := c.Param("reference")
 
@@ -100,6 +155,16 @@ func (h *WalletHandler) GetDepositStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, status)
 }
 
+// Webhook godoc
+// @Summary Process Paystack webhook
+// @Description Handle webhook notifications from Paystack for payment events
+// @Tags wallet
+// @Accept json
+// @Produce json
+// @Param X-Paystack-Signature header string true "Paystack webhook signature"
+// @Success 200 {object} map[string]bool "status"
+// @Failure 400 {object} map[string]string "error"
+// @Router /wallet/paystack/webhook [post]
 func (h *WalletHandler) Webhook(c *gin.Context) {
 	payload, _ := c.GetRawData()
 	signature := c.GetHeader("x-paystack-signature")
@@ -113,6 +178,17 @@ func (h *WalletHandler) Webhook(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": true})
 }
 
+// DepositCallback godoc
+// @Summary Handle deposit callback
+// @Description Handle callback from Paystack after deposit payment
+// @Tags wallet
+// @Accept json
+// @Produce json
+// @Param reference query string true "Transaction reference"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string "error"
+// @Failure 404 {object} map[string]string "error"
+// @Router /wallet/deposit/callback [get]
 func (h *WalletHandler) DepositCallback(c *gin.Context) {
 	reference := c.Query("reference")
 	if reference == "" {

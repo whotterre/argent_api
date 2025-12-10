@@ -25,6 +25,7 @@ import (
 	"whotterre/argent/internal/config"
 	"whotterre/argent/internal/initializers"
 	"whotterre/argent/internal/routes"
+	_ "whotterre/argent/docs"
 
 	"github.com/gin-gonic/gin"
 )

@@ -81,6 +81,557 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/keys/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a new API key with specified permissions and expiry",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-keys"
+                ],
+                "summary": "Create a new API key",
+                "parameters": [
+                    {
+                        "description": "API key creation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.CreateAPIKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "api_key,expires_at",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "412": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/keys/rollover": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generate a new API key to replace an existing one",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-keys"
+                ],
+                "summary": "Rollover an existing API key",
+                "parameters": [
+                    {
+                        "description": "API key rollover request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.RolloverAPIKeyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "api_key,expires_at",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/balance": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the current balance of the user's wallet",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallet"
+                ],
+                "summary": "Get wallet balance",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.BalanceResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/deposit": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Initiate a deposit transaction using Paystack",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallet"
+                ],
+                "summary": "Deposit money into wallet",
+                "parameters": [
+                    {
+                        "description": "Deposit request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.DepositWalletRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.DepositWalletResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/deposit/callback": {
+            "get": {
+                "description": "Handle callback from Paystack after deposit payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallet"
+                ],
+                "summary": "Handle deposit callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction reference",
+                        "name": "reference",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/deposit/{reference}/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Check the status of a deposit transaction by reference",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallet"
+                ],
+                "summary": "Get deposit transaction status",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction reference",
+                        "name": "reference",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/paystack/webhook": {
+            "post": {
+                "description": "Handle webhook notifications from Paystack for payment events",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallet"
+                ],
+                "summary": "Process Paystack webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Paystack webhook signature",
+                        "name": "X-Paystack-Signature",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "status",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieve the user's transaction history",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallet"
+                ],
+                "summary": "Get transaction history",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/whotterre_argent_internal_dto.TransactionResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/wallet/transfer": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Transfer money from user's wallet to another wallet by wallet number",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "wallet"
+                ],
+                "summary": "Transfer money to another wallet",
+                "parameters": [
+                    {
+                        "description": "Transfer request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.TransferRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/whotterre_argent_internal_dto.TransferResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "whotterre_argent_internal_dto.BalanceResponse": {
+            "type": "object",
+            "properties": {
+                "balance": {
+                    "type": "number"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.CreateAPIKeyRequest": {
+            "type": "object",
+            "properties": {
+                "expiry": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.DepositWalletRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.DepositWalletResponse": {
+            "type": "object",
+            "properties": {
+                "authorization_url": {
+                    "type": "string"
+                },
+                "reference": {
+                    "type": "string"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.RolloverAPIKeyRequest": {
+            "type": "object",
+            "properties": {
+                "Expiry": {
+                    "type": "string"
+                },
+                "expired_api_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.TransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.TransferRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "wallet_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "whotterre_argent_internal_dto.TransferResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {

@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"net/http"
 	"whotterre/argent/internal/config"
 	"whotterre/argent/internal/handlers"
 	"whotterre/argent/internal/middleware"
@@ -9,8 +8,8 @@ import (
 	"whotterre/argent/internal/services"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 	"gorm.io/gorm"
 )
 
@@ -38,7 +37,7 @@ func SetupRoutes(app *gin.Engine, cfg config.Config, db *gorm.DB) {
 	// Wallet modules
 	walletRepo := repositories.NewWalletRepository(db)
 	transactionRepo := repositories.NewTransactionRepository(db)
-	walletService := services.NewWalletService(walletRepo, transactionRepo, userRepo, cfg.PaystackSecret, db)
+	walletService := services.NewWalletService(walletRepo, transactionRepo, userRepo, cfg.PaystackSecret, db, cfg)
 	walletHandler := handlers.NewWalletHandler(walletService)
 
 	wallet := app.Group("/wallet")
@@ -50,14 +49,7 @@ func SetupRoutes(app *gin.Engine, cfg config.Config, db *gorm.DB) {
 	wallet.GET("/deposit/:reference/status", walletHandler.GetDepositStatus)
 	wallet.POST("/paystack/webhook", walletHandler.Webhook)
 	wallet.GET("/deposit/callback", walletHandler.DepositCallback)
-
 	// Swagger docs
 	app.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 }
 
-func dummy(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"hello": "hi",
-	})
-}

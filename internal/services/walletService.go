@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"whotterre/argent/internal/config"
 	"whotterre/argent/internal/customErrors"
 	"whotterre/argent/internal/dto"
 	"whotterre/argent/internal/models"
@@ -35,15 +36,17 @@ type walletService struct {
 	userRepo        repositories.UserRepository
 	paystackSecret  string
 	db              *gorm.DB
+	config          config.Config
 }
 
-func NewWalletService(walletRepo repositories.WalletRepository, transactionRepo repositories.TransactionRepository, userRepo repositories.UserRepository, paystackSecret string, db *gorm.DB) WalletService {
+func NewWalletService(walletRepo repositories.WalletRepository, transactionRepo repositories.TransactionRepository, userRepo repositories.UserRepository, paystackSecret string, db *gorm.DB, cfg config.Config) WalletService {
 	return &walletService{
 		walletRepo:      walletRepo,
 		transactionRepo: transactionRepo,
 		userRepo:        userRepo,
 		paystackSecret:  paystackSecret,
 		db:              db,
+		config:          cfg,
 	}
 }
 
@@ -75,10 +78,10 @@ func (s *walletService) DepositWallet(input dto.DepositWalletRequest, userID uui
 
 	// Call Paystack
 	payload := map[string]interface{}{
-		"amount":       int(input.Amount * 100), // kobo
+		"amount":       int(input.Amount * 100),
 		"email":        user.Email,
 		"reference":    ref,
-		"callback_url": "http://localhost:9000/wallet/deposit/callback",
+		"callback_url": s.config.BaseURL + "/wallet/deposit/callback",
 	}
 	resp, err := s.callPaystack("transaction/initialize", payload)
 	if err != nil {

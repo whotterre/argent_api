@@ -24,6 +24,19 @@ func NewAPIKeyHandler(apiKeyService services.APIKeyService) *APIKeyHandler {
 	}
 }
 
+// CreateAPIKey godoc
+// @Summary Create a new API key
+// @Description Generate a new API key with specified permissions and expiry
+// @Tags api-keys
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateAPIKeyRequest true "API key creation request"
+// @Success 200 {object} map[string]interface{} "api_key,expires_at"
+// @Failure 400 {object} map[string]string "error"
+// @Failure 412 {object} map[string]string "error"
+// @Failure 500 {object} map[string]string "error"
+// @Security BearerAuth
+// @Router /keys/create [post]
 func (h *APIKeyHandler) CreateAPIKey(c *gin.Context) {
 	var req dto.CreateAPIKeyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -69,6 +82,18 @@ func (h *APIKeyHandler) CreateAPIKey(c *gin.Context) {
 	})
 }
 
+// RolloverAPIKey godoc
+// @Summary Rollover an existing API key
+// @Description Generate a new API key to replace an existing one
+// @Tags api-keys
+// @Accept json
+// @Produce json
+// @Param request body dto.RolloverAPIKeyRequest true "API key rollover request"
+// @Success 200 {object} map[string]interface{} "api_key,expires_at"
+// @Failure 400 {object} map[string]string "error"
+// @Failure 500 {object} map[string]string "error"
+// @Security BearerAuth
+// @Router /keys/rollover [post]
 func (h *APIKeyHandler) RolloverAPIKey(c *gin.Context){
 	var req dto.RolloverAPIKeyRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

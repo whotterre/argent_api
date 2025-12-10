@@ -1,4 +1,63 @@
 basePath: /
+definitions:
+  whotterre_argent_internal_dto.BalanceResponse:
+    properties:
+      balance:
+        type: number
+    type: object
+  whotterre_argent_internal_dto.CreateAPIKeyRequest:
+    properties:
+      expiry:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+    type: object
+  whotterre_argent_internal_dto.DepositWalletRequest:
+    properties:
+      amount:
+        type: number
+    type: object
+  whotterre_argent_internal_dto.DepositWalletResponse:
+    properties:
+      authorization_url:
+        type: string
+      reference:
+        type: string
+    type: object
+  whotterre_argent_internal_dto.RolloverAPIKeyRequest:
+    properties:
+      Expiry:
+        type: string
+      expired_api_key:
+        type: string
+    type: object
+  whotterre_argent_internal_dto.TransactionResponse:
+    properties:
+      amount:
+        type: number
+      status:
+        type: string
+      type:
+        type: string
+    type: object
+  whotterre_argent_internal_dto.TransferRequest:
+    properties:
+      amount:
+        type: number
+      wallet_number:
+        type: string
+    type: object
+  whotterre_argent_internal_dto.TransferResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
 host: localhost:9000
 info:
   contact:
@@ -52,6 +111,299 @@ paths:
       summary: Handle Google OAuth callback
       tags:
       - auth
+  /keys/create:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new API key with specified permissions and expiry
+      parameters:
+      - description: API key creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/whotterre_argent_internal_dto.CreateAPIKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: api_key,expires_at
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "412":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new API key
+      tags:
+      - api-keys
+  /keys/rollover:
+    post:
+      consumes:
+      - application/json
+      description: Generate a new API key to replace an existing one
+      parameters:
+      - description: API key rollover request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/whotterre_argent_internal_dto.RolloverAPIKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: api_key,expires_at
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Rollover an existing API key
+      tags:
+      - api-keys
+  /wallet/balance:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the current balance of the user's wallet
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/whotterre_argent_internal_dto.BalanceResponse'
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get wallet balance
+      tags:
+      - wallet
+  /wallet/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Initiate a deposit transaction using Paystack
+      parameters:
+      - description: Deposit request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/whotterre_argent_internal_dto.DepositWalletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/whotterre_argent_internal_dto.DepositWalletResponse'
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deposit money into wallet
+      tags:
+      - wallet
+  /wallet/deposit/{reference}/status:
+    get:
+      consumes:
+      - application/json
+      description: Check the status of a deposit transaction by reference
+      parameters:
+      - description: Transaction reference
+        in: path
+        name: reference
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get deposit transaction status
+      tags:
+      - wallet
+  /wallet/deposit/callback:
+    get:
+      consumes:
+      - application/json
+      description: Handle callback from Paystack after deposit payment
+      parameters:
+      - description: Transaction reference
+        in: query
+        name: reference
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Handle deposit callback
+      tags:
+      - wallet
+  /wallet/paystack/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Handle webhook notifications from Paystack for payment events
+      parameters:
+      - description: Paystack webhook signature
+        in: header
+        name: X-Paystack-Signature
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: status
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Process Paystack webhook
+      tags:
+      - wallet
+  /wallet/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the user's transaction history
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/whotterre_argent_internal_dto.TransactionResponse'
+            type: array
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get transaction history
+      tags:
+      - wallet
+  /wallet/transfer:
+    post:
+      consumes:
+      - application/json
+      description: Transfer money from user's wallet to another wallet by wallet number
+      parameters:
+      - description: Transfer request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/whotterre_argent_internal_dto.TransferRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/whotterre_argent_internal_dto.TransferResponse'
+        "400":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Transfer money to another wallet
+      tags:
+      - wallet
 securityDefinitions:
   BearerAuth:
     description: 'Enter the token in the format: Bearer {token}'
