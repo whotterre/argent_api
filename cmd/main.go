@@ -33,14 +33,14 @@ func main() {
 	app := gin.Default()
 	cfg, err := config.LoadConfig()
 	if err != nil {
-	   return 
+		return
 	}
 
 	// Connect to database
 	initializers.ConnectToDB(cfg.DatabaseURL)
 	db := initializers.DB
 	routes.SetupRoutes(app, cfg, db)
-	
+
 	port := ":" + cfg.Port
 	app.Run(port)
 }

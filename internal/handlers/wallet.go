@@ -112,3 +112,19 @@ func (h *WalletHandler) Webhook(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"status": true})
 }
+
+func (h *WalletHandler) DepositCallback(c *gin.Context) {
+	reference := c.Query("reference")
+	if reference == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Reference missing"})
+		return
+	}
+
+	status, err := h.walletService.GetDepositStatus(reference)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, status)
+}
