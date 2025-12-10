@@ -37,7 +37,7 @@ func main() {
 
 	// Configure CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{"https://argentapi-production-119e.up.railway.app", "http://localhost:3000", "http://localhost:8080", "http://localhost:9000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "X-API-Key", "X-Paystack-Signature"},
 		AllowCredentials: true,
