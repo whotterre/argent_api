@@ -47,8 +47,10 @@ func SetupRoutes(app *gin.Engine, cfg config.Config, db *gorm.DB) {
 	wallet.POST("/transfer", walletHandler.Transfer)
 	wallet.GET("/transactions", walletHandler.GetTransactions)
 	wallet.GET("/deposit/:reference/status", walletHandler.GetDepositStatus)
-	wallet.POST("/paystack/webhook", walletHandler.Webhook)
-	wallet.GET("/deposit/callback", walletHandler.DepositCallback)
+
+	// Public wallet endpoints (no auth required)
+	app.POST("/wallet/paystack/webhook", walletHandler.Webhook)
+	app.GET("/wallet/deposit/callback", walletHandler.DepositCallback)
 	// Swagger docs
 	app.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
