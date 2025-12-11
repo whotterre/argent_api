@@ -2,7 +2,8 @@ package services
 
 import (
 	"crypto/hmac"
-	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -174,10 +175,11 @@ func (s *walletService) ProcessWebhook(payload []byte, signature string) error {
 	log.Printf("Processing webhook with signature: %s", signature)
 
 	// Validate signature
-	expectedSignature := hmac.New(sha256.New, []byte(s.paystackSecret))
+	expectedSignature := hmac.New(sha512.New, []byte(s.paystackSecret))
 	expectedSignature.Write(payload)
-	if !hmac.Equal([]byte(signature), expectedSignature.Sum(nil)) {
-		log.Printf("Invalid signature")
+	expectedHex := hex.EncodeToString(expectedSignature.Sum(nil))
+	if !hmac.Equal([]byte(signature), []byte(expectedHex)) {
+		log.Printf("Invalid signature - expected: %s, got: %s", expectedHex, signature)
 		return errors.New("invalid signature")
 	}
 
