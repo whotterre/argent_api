@@ -141,14 +141,14 @@ func (s *walletService) Transfer(userID uuid.UUID, receiverWalletID string, amou
 	}()
 
 	// Deduct from sender
-	err = s.walletRepo.UpdateBalance(userID, senderWallet.Balance-amount)
+	err = s.walletRepo.UpdateBalance(senderWallet.ID, senderWallet.Balance-amount)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
 	// Add to receiver
-	err = s.walletRepo.UpdateBalance(receiverID, receiverWallet.Balance+amount)
+	err = s.walletRepo.UpdateBalance(receiverWallet.ID, receiverWallet.Balance+amount)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -161,6 +161,7 @@ func (s *walletService) Transfer(userID uuid.UUID, receiverWalletID string, amou
 		Amount:     amount,
 		Type:       "transfer",
 		Status:     "success",
+		Reference:  utils.GenRefString(), // Generate unique reference for transfers
 	}
 	err = s.transactionRepo.CreateTransaction(transaction)
 	if err != nil {
