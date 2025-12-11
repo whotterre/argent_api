@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"whotterre/argent/internal/dto"
 	"whotterre/argent/internal/services"
@@ -166,15 +167,21 @@ func (h *WalletHandler) GetDepositStatus(c *gin.Context) {
 // @Failure 400 {object} map[string]string "error"
 // @Router /wallet/paystack/webhook [post]
 func (h *WalletHandler) Webhook(c *gin.Context) {
+	log.Printf("Webhook endpoint called")
+
 	payload, _ := c.GetRawData()
 	signature := c.GetHeader("x-paystack-signature")
 
+	log.Printf("Webhook payload length: %d", len(payload))
+
 	err := h.walletService.ProcessWebhook(payload, signature)
 	if err != nil {
+		log.Printf("Webhook processing failed: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	log.Printf("Webhook processed successfully")
 	c.JSON(http.StatusOK, gin.H{"status": true})
 }
 

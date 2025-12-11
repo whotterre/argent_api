@@ -171,50 +171,83 @@ func (s *walletService) GetTransactions(userID uuid.UUID) ([]models.Transaction,
 }
 
 func (s *walletService) ProcessWebhook(payload []byte, signature string) error {
+	log.Printf("Processing webhook with signature: %s", signature)
+
 	// Validate signature
 	expectedSignature := hmac.New(sha512.New, []byte(s.paystackSecret))
 	expectedSignature.Write(payload)
 	if !hmac.Equal([]byte(signature), expectedSignature.Sum(nil)) {
+		log.Printf("Invalid signature")
 		return errors.New("invalid signature")
 	}
 
 	var data map[string]interface{}
-	json.Unmarshal(payload, &data)
+	if err := json.Unmarshal(payload, &data); err != nil {
+		log.Printf("Failed to unmarshal webhook payload: %v", err)
+		return err
+	}
 
-	event := data["event"].(string)
+	event, ok := data["event"].(string)
+	if !ok {
+		log.Printf("Invalid event field")
+		return errors.New("invalid event")
+	}
+
+	log.Printf("Webhook event: %s", event)
 	if event != "charge.success" {
 		return nil // ignore other events
 	}
 
-	reference := data["data"].(map[string]interface{})["reference"].(string)
+	dataObj, ok := data["data"].(map[string]interface{})
+	if !ok {
+		log.Printf("Invalid data field")
+		return errors.New("invalid data")
+	}
+
+	reference, ok := dataObj["reference"].(string)
+	if !ok {
+		log.Printf("Invalid reference field")
+		return errors.New("invalid reference")
+	}
+
+	log.Printf("Processing transaction with reference: %s", reference)
 
 	// Find transaction
 	transaction, err := s.transactionRepo.GetTransactionByReference(reference)
 	if err != nil {
+		log.Printf("Failed to find transaction: %v", err)
 		return err
 	}
 
 	if transaction.Status == "success" {
+		log.Printf("Transaction already processed")
 		return nil // idempotent
 	}
 
 	// Update status
 	err = s.transactionRepo.UpdateTransactionStatus(transaction.ID, "success")
 	if err != nil {
+		log.Printf("Failed to update transaction status: %v", err)
 		return err
 	}
 
 	// Credit wallet
 	wallet, err := s.walletRepo.GetWalletByUserID(transaction.ReceiverID)
 	if err != nil {
-		return err
-	}
-	newBalance := wallet.Balance + transaction.Amount
-	err = s.walletRepo.UpdateBalance(transaction.ReceiverID, newBalance)
-	if err != nil {
+		log.Printf("Failed to get wallet: %v", err)
 		return err
 	}
 
+	newBalance := wallet.Balance + transaction.Amount
+	log.Printf("Updating balance from %.2f to %.2f", wallet.Balance, newBalance)
+
+	err = s.walletRepo.UpdateBalance(transaction.ReceiverID, newBalance)
+	if err != nil {
+		log.Printf("Failed to update wallet balance: %v", err)
+		return err
+	}
+
+	log.Printf("Webhook processed successfully")
 	return nil
 }
 
