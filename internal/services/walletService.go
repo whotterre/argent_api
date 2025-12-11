@@ -223,7 +223,7 @@ func (s *walletService) ProcessWebhook(payload []byte, signature string) error {
 
 	if transaction.Status == "success" {
 		log.Printf("Transaction already processed")
-		return nil // idempotent
+		return nil 
 	}
 
 	// Update status
@@ -234,22 +234,24 @@ func (s *walletService) ProcessWebhook(payload []byte, signature string) error {
 	}
 
 	// Credit wallet
+	log.Printf("Getting wallet for user ID: %s", transaction.ReceiverID)
 	wallet, err := s.walletRepo.GetWalletByUserID(transaction.ReceiverID)
 	if err != nil {
 		log.Printf("Failed to get wallet: %v", err)
 		return err
 	}
 
+	log.Printf("Current wallet balance: %.2f, transaction amount: %.2f", wallet.Balance, transaction.Amount)
 	newBalance := wallet.Balance + transaction.Amount
 	log.Printf("Updating balance from %.2f to %.2f", wallet.Balance, newBalance)
 
-	err = s.walletRepo.UpdateBalance(transaction.ReceiverID, newBalance)
+	err = s.walletRepo.UpdateBalance(wallet.ID, newBalance)
 	if err != nil {
 		log.Printf("Failed to update wallet balance: %v", err)
 		return err
 	}
 
-	log.Printf("Webhook processed successfully")
+	log.Printf("Wallet balance updated successfully to %.2f", newBalance)
 	return nil
 }
 
