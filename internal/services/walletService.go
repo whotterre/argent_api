@@ -121,6 +121,11 @@ func (s *walletService) Transfer(userID uuid.UUID, receiverWalletID string, amou
 		return errors.New("invalid receiver wallet ID")
 	}
 
+	// Prevent self-transfer
+	if userID == receiverID {
+		return errors.New("cannot transfer to yourself")
+	}
+
 	// Get receiver wallet
 	receiverWallet, err := s.walletRepo.GetWalletByUserID(receiverID)
 	if err != nil {
@@ -223,7 +228,7 @@ func (s *walletService) ProcessWebhook(payload []byte, signature string) error {
 
 	if transaction.Status == "success" {
 		log.Printf("Transaction already processed")
-		return nil 
+		return nil
 	}
 
 	// Update status
